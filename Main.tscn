@@ -1,0 +1,114 @@
+[gd_scene load_steps=5 format=2]
+
+[ext_resource path="res://Main.gd" type="Script" id=1]
+[ext_resource path="res://Unit.tscn" type="PackedScene" id=2]
+[ext_resource path="res://CPU_Faction_5.tscn" type="PackedScene" id=3]
+
+[sub_resource type="RectangleShape2D" id=1]
+
+custom_solver_bias = 0.0
+extents = Vector2( 524.964, 21.662 )
+
+[node name="Main" type="Node2D" index="0"]
+
+script = ExtResource( 1 )
+
+[node name="P1 Faction" type="Node2D" parent="." index="0"]
+
+[node name="P1" parent="P1 Faction" index="0" instance=ExtResource( 2 )]
+
+position = Vector2( 145.152, 86.4266 )
+_sections_unfolded = [ "Collision" ]
+CONTROLLER = "P1"
+POWER = 25
+color = Color( 0.921875, 1, 0, 1 )
+
+[node name="Friend1" parent="P1 Faction" index="1" instance=ExtResource( 2 )]
+
+position = Vector2( 77.3196, 130.681 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="Friend2" parent="P1 Faction" index="2" instance=ExtResource( 2 )]
+
+position = Vector2( -6.8909, 134.005 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="Friend3" parent="P1 Faction" index="3" instance=ExtResource( 2 )]
+
+position = Vector2( 103.912, 134.005 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="Friend4" parent="P1 Faction" index="4" instance=ExtResource( 2 )]
+
+position = Vector2( 0.865326, 50.9022 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="Friend5" parent="P1 Faction" index="5" instance=ExtResource( 2 )]
+
+position = Vector2( 36.3224, 186.082 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="Friend6" parent="P1 Faction" index="6" instance=ExtResource( 2 )]
+
+position = Vector2( 57.375, 292.453 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="Friend7" parent="P1 Faction" index="7" instance=ExtResource( 2 )]
+
+position = Vector2( 169.286, 191.622 )
+collision_layer = 2
+collision_mask = 2
+_sections_unfolded = [ "Collision" ]
+POWER = 20
+
+[node name="KinematicBody2D" type="KinematicBody2D" parent="." index="1"]
+
+position = Vector2( 92.8537, 1.62901 )
+input_pickable = false
+collision_layer = 3
+collision_mask = 3
+collision/safe_margin = 0.08
+_sections_unfolded = [ "Collision" ]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="KinematicBody2D" index="0"]
+
+position = Vector2( 504.155, 14.4044 )
+shape = SubResource( 1 )
+
+[node name="ColorRect" type="ColorRect" parent="KinematicBody2D" index="1"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_right = 1026.0
+margin_bottom = 40.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+mouse_filter = 0
+mouse_default_cursor_shape = 0
+size_flags_horizontal = 1
+size_flags_vertical = 1
+color = Color( 1, 1, 1, 1 )
+
+[node name="Node2D" parent="." index="2" instance=ExtResource( 3 )]
+
+
