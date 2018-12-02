@@ -1,0 +1,77 @@
+[gd_scene load_steps=8 format=2]
+
+[ext_resource path="res://imgs/wall.png" type="Texture" id=1]
+[ext_resource path="res://imgs/door.png" type="Texture" id=2]
+[ext_resource path="res://imgs/grass.png" type="Texture" id=3]
+[ext_resource path="res://imgs/floor.png" type="Texture" id=4]
+[ext_resource path="res://imgs/rubble.png" type="Texture" id=5]
+
+[sub_resource type="RectangleShape2D" id=1]
+
+custom_solver_bias = 0.0
+extents = Vector2( 30, 30 )
+
+[sub_resource type="RectangleShape2D" id=2]
+
+custom_solver_bias = 0.0
+extents = Vector2( 30, 30 )
+
+[node name="Tiles" type="Node2D"]
+
+[node name="Wall" type="Sprite" parent="." index="0"]
+
+editor/display_folded = true
+texture = ExtResource( 1 )
+_sections_unfolded = [ "Region" ]
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Wall" index="0"]
+
+input_pickable = false
+collision_layer = 1
+collision_mask = 1
+constant_linear_velocity = Vector2( 0, 0 )
+constant_angular_velocity = 0.0
+friction = 1.0
+bounce = 0.0
+_sections_unfolded = [ "Collision" ]
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Wall/StaticBody2D" index="0"]
+
+shape = SubResource( 1 )
+
+[node name="Door" type="Sprite" parent="." index="1"]
+
+editor/display_folded = true
+position = Vector2( 80, 0 )
+texture = ExtResource( 2 )
+
+[node name="StaticBody2D" type="StaticBody2D" parent="Door" index="0"]
+
+input_pickable = false
+collision_layer = 1
+collision_mask = 1
+constant_linear_velocity = Vector2( 0, 0 )
+constant_angular_velocity = 0.0
+friction = 1.0
+bounce = 0.0
+
+[node name="CollisionShape2D" type="CollisionShape2D" parent="Door/StaticBody2D" index="0"]
+
+shape = SubResource( 2 )
+
+[node name="Grass" type="Sprite" parent="." index="2"]
+
+position = Vector2( 160, 0 )
+texture = ExtResource( 3 )
+
+[node name="Floor" type="Sprite" parent="." index="3"]
+
+position = Vector2( 80, 80 )
+texture = ExtResource( 4 )
+
+[node name="Rocks" type="Sprite" parent="." index="4"]
+
+position = Vector2( 160, 80 )
+texture = ExtResource( 5 )
+
+

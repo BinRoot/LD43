@@ -6,7 +6,7 @@
 
 script = ExtResource( 1 )
 final_scale = Vector2( 1.2, 1.2 )
-float_distance = 160
+float_distance = 100
 duration = 2.25
 
 [node name="Tween" type="Tween" parent="." index="0"]

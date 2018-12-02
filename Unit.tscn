@@ -13,7 +13,7 @@ custom_solver_bias = 0.0
 radius = 1.00508
 height = 9.33272
 
-[node name="Unit" type="KinematicBody2D" index="0"]
+[node name="Unit" type="KinematicBody2D"]
 
 input_pickable = false
 collision_layer = 1
@@ -25,7 +25,9 @@ AFFILIATION = "P1"
 POWER = 10
 color = null
 chant_heard = false
+sacrifice_leader = false
 direction = Vector2( 0, 0 )
+SPEED = null
 
 [node name="Shadow" type="ColorRect" parent="." index="0"]
 
