@@ -7,6 +7,12 @@ export (Color) var color
 export (bool) var chant_heard = false
 export (bool) var sacrifice_leader = false
 var prev_chant_heard = 0
+var slay_vs_save = null
+var slay_vs_save_faction = null
+var slay_vs_save_dead_body = null
+export (bool) var dead = false
+export (bool) var is_afraid = false
+export (float) var vision_distance = 200
 
 enum Message { SPLIT_FROM_TEAM, JOIN_WITH_TEAM, JOIN_WITH_ENEMY, KILLED_ENEMY, CHANT, CHANT_RESPONSE }
 
@@ -28,10 +34,10 @@ const ninf = -2.802597e-45
 var player_controller = {
 	'P1': {'up': 'p1_up', 'down': 'p1_down', 'left': 'p1_left', 'right': 'p1_right', 
 		'split_1': 'p1_split_1', 'split_2': 'p1_split_2', 'split_3': 'p1_split_3',
-		'chant': 'p1_chant'},
+		'chant': 'p1_chant', 'save': 'p1_save', 'slay': 'p1_slay'},
 	'P2': {'up': 'p2_up', 'down': 'p2_down', 'left': 'p2_left', 'right': 'p2_right',
 		'split_1': 'p2_split_1', 'split_2': 'p2_split_2', 'split_3': 'p2_split_3',
-		'chant': 'p2_chant'}
+		'chant': 'p2_chant', 'save': 'p2_save', 'slay': 'p2_slay'}
 }
 
 var affiliation_color = {
@@ -42,14 +48,15 @@ var affiliation_color = {
 
 var affiliation_speed = {
 	'P1': 100,
-	'P2': 100,
-	'CPU': 100
+	'P2': 50,
+	'CPU': 50
 }
 
 var velocity 
 export (Vector2) var direction = Vector2()
 var goal_position
-export (float) var SPEED = null
+var faction_slowdown_factor = 1.0
+#export (float) var SPEED = null
 var sword_points_at_enemy = false
 
 
@@ -59,8 +66,8 @@ func _ready():
 	set_colors()
 	set_collision_layer_bit(0, true)
 	set_collision_mask_bit(0, true)
-	if SPEED != null:
-		affiliation_speed[AFFILIATION] = SPEED
+	#if SPEED != null:
+	#	affiliation_speed[AFFILIATION] = SPEED
 	
 	
 func get_user_input():
@@ -83,9 +90,21 @@ func get_user_input():
 		say(Message.CHANT)
 		for unit in get_parent().get_children():
 			unit.chant_heard = true
+	if Input.is_action_just_pressed(player_controller[CONTROLLER]['slay']):
+		if slay_vs_save != null:
+			say(Message.CHANT)
+			for unit in get_parent().get_children():
+				unit.chant_heard = true
+			slay_vs_save.queue_free()
+	if Input.is_action_just_pressed(player_controller[CONTROLLER]['save']):
+		if slay_vs_save != null:
+			slay_vs_save_faction.add_child(slay_vs_save)
+			join_with(slay_vs_save_faction)
+			say(Message.JOIN_WITH_ENEMY)
+			slay_vs_save_dead_body.queue_free()
 	if velocity.length() != 0:
 		direction = direction.normalized() * 0.9 + velocity.normalized() * 0.1
-	velocity = velocity.normalized() * affiliation_speed[AFFILIATION]
+	velocity = velocity.normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor * 1.1
 	
 func split_faction(split_type):
 	say(Message.SPLIT_FROM_TEAM)
@@ -164,66 +183,71 @@ func get_p1():
 func get_system_input():
 	var enemy = find_nearest_enemy()
 	velocity = Vector2()
-	# identify leader of faction
-	var leader = get_faction_leader(get_parent())
-	if leader == get_node('.'):
-		if enemy != null:
-			velocity = (enemy.position - position).normalized() * affiliation_speed[AFFILIATION]
-		else:
-			var p1 = get_p1()
-			velocity = (p1.position - position).normalized() * affiliation_speed[AFFILIATION]
-			
+	if is_afraid and enemy == null:
+		is_afraid = false
+	elif is_afraid and enemy != null:
+		velocity = (position - enemy.position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor / 4
 	else:
-		#print('{n} is following leader {m}'.format({'n': get_node('.').name, 'm': leader.name}))
-		velocity = leader.position - position
-		var candidate_positions = []
-		for i in range(10, 40, 1):
-			candidate_positions.append(leader.position + leader.direction.normalized()*50 + leader.direction.tangent().normalized() * i)
-			candidate_positions.append(leader.position + leader.direction.normalized()*50 - leader.direction.tangent().normalized() * i)
-		var avg_candidate_dists = []
-		for i in range(candidate_positions.size()):
-			avg_candidate_dists.append(0)
-		var faction_units = get_parent().get_children()
-		for unit in faction_units:
-			if unit == leader:
+		# identify leader of faction
+		var leader = get_faction_leader(get_parent())
+		if leader == self:
+			if enemy != null:
+				velocity = (enemy.position - position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor
+			else:
 				pass
-			for candidate_idx in range(candidate_positions.size()):
-				avg_candidate_dists[candidate_idx] += candidate_positions[candidate_idx].distance_to(unit.position)
-		for candidate_idx in range(candidate_positions.size()):
-			avg_candidate_dists[candidate_idx] /= (faction_units.size() + 0.0)
-			avg_candidate_dists[candidate_idx] -= candidate_positions[candidate_idx].distance_to(position)
-		var max_dist_from_player = 50.0
-		var max_candidate_idx = get_max(avg_candidate_dists)
-		if velocity.length() > max_dist_from_player or enemy == null:
-			sword_points_at_enemy = false
-			
-			var dist_to_goal = candidate_positions[max_candidate_idx].distance_to(position)
-			var speed = dist_to_goal
-			
-			velocity = (candidate_positions[max_candidate_idx] - position).normalized() * speed
-			goal_position = candidate_positions[max_candidate_idx]
-			update()
+				#var p1 = get_p1()
+				#velocity = (p1.position - position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor
 		else:
-			sword_points_at_enemy = true
-			var dist_ratio = velocity.length() / max_dist_from_player
-			var speed = affiliation_speed[AFFILIATION]
-			if dist_ratio > 0.01:
-				speed = -log(dist_ratio) * affiliation_speed[AFFILIATION] * 10
-			velocity = (enemy.position - position).normalized() * speed
-			goal_position = enemy.position
-			update()
+			#print('{n} is following leader {m}'.format({'n': get_node('.').name, 'm': leader.name}))
+			velocity = leader.position - position
+			var candidate_positions = []
+			for i in range(10, 40, 1):
+				candidate_positions.append(leader.position + leader.direction.normalized()*50 + leader.direction.tangent().normalized() * i)
+				candidate_positions.append(leader.position + leader.direction.normalized()*50 - leader.direction.tangent().normalized() * i)
+			var avg_candidate_dists = []
+			for i in range(candidate_positions.size()):
+				avg_candidate_dists.append(0)
+			var faction_units = get_parent().get_children()
+			for unit in faction_units:
+				if unit == leader:
+					pass
+				for candidate_idx in range(candidate_positions.size()):
+					avg_candidate_dists[candidate_idx] += candidate_positions[candidate_idx].distance_to(unit.position)
+			for candidate_idx in range(candidate_positions.size()):
+				avg_candidate_dists[candidate_idx] /= (faction_units.size() + 0.0)
+				avg_candidate_dists[candidate_idx] -= candidate_positions[candidate_idx].distance_to(position)
+			var max_dist_from_player = 50.0
+			var max_candidate_idx = get_max(avg_candidate_dists)
+			if velocity.length() > max_dist_from_player or enemy == null:
+				sword_points_at_enemy = false
+				
+				var dist_to_goal = candidate_positions[max_candidate_idx].distance_to(position)
+				var speed = dist_to_goal
+				
+				velocity = (candidate_positions[max_candidate_idx] - position).normalized() * speed
+				goal_position = candidate_positions[max_candidate_idx]
+				update()
+			else:
+				sword_points_at_enemy = true
+				var dist_ratio = velocity.length() / max_dist_from_player
+				var speed = affiliation_speed[AFFILIATION]
+				if dist_ratio > 0.01:
+					speed = -log(dist_ratio) * affiliation_speed[AFFILIATION] * 10
+				velocity = (enemy.position - position).normalized() * speed
+				goal_position = enemy.position
+				update()
 	if velocity.length() != 0:
 		direction = direction.normalized() * 0.9 + velocity.normalized() * 0.1
 
 func find_nearest_enemy():
+	var space_state = get_world_2d().direct_space_state
 	var shortest_dist = inf
 	var nearest_enemy = null
 	var all_units = get_tree().get_nodes_in_group('unit')
 	for unit in all_units:
 		if unit.AFFILIATION != AFFILIATION:
-			#print('{my} enemy is {enemy}'.format({'my': name, 'enemy': unit.name}))
 			var dist = (unit.position - position).length()
-			if dist < shortest_dist:
+			if dist < shortest_dist and dist < vision_distance:
 				shortest_dist = dist
 				nearest_enemy = unit
 	#print('{my} nearest enemy is {enemy}'.format({'my': name, 'enemy': nearest_enemy.name}))
@@ -253,8 +277,13 @@ func rotate_sword():
 
 func set_speed():
 	var faction_size = get_parent().get_children().size()
-	var speed_factor = 2.0 / faction_size
-	SPEED = speed_factor * affiliation_speed[AFFILIATION]
+	faction_slowdown_factor = 1.5 / faction_size
+
+func set_crown():
+	if get_faction_leader(get_parent()) == self:
+		$Crown.show()
+	else:
+		$Crown.hide()
 
 func _physics_process(delta):
 	if CONTROLLER == "CPU":
@@ -265,6 +294,7 @@ func _physics_process(delta):
 	rotate_sword()
 	set_colors()
 	set_speed()
+	set_crown()
 	if chant_heard and CONTROLLER == 'CPU' and OS.get_unix_time() - prev_chant_heard > 1:
 		POWER += 1
 		say(Message.CHANT_RESPONSE)
@@ -277,6 +307,11 @@ func join_with(faction):
 		unit2.AFFILIATION = AFFILIATION
 		get_parent().add_child(unit2)
 		unit.queue_free()
+
+func hint():
+	var h = load('res://Hint.tscn').instance()
+	h.position += Vector2(0, -80)
+	add_child(h)
 	
 func say(message_type):
 	var chat = load('res://Chat.tscn').instance()
@@ -300,23 +335,60 @@ func say(message_type):
 	chat.set('z', 1)
 	add_child(chat)
 
+func animate_death(body, remember):
+	var mock_body = Node2D.new()
+	if remember:
+		slay_vs_save_dead_body = mock_body
+	var r = $ColorRect.duplicate()
+	r.color = affiliation_color[body.AFFILIATION]
+	mock_body.add_child(r)
+	mock_body.position = body.position
+	get_node('../../Background').add_child(mock_body)
+	var angle
+	if randi() % 2 == 0:
+		angle = PI/2
+	else:
+		angle = -PI/2
+	var original_rotation = mock_body.rotation
+	var goal_rotation = mock_body.rotation + angle
+	print('{orig} -> {goal}'.format({'orig': original_rotation, 'goal': goal_rotation}))
+	$Tween.interpolate_property(mock_body, 'rotation', original_rotation, goal_rotation, 0.1, Tween.TRANS_QUAD, Tween.EASE_OUT)
+	$Tween.start()
+	yield($Tween, 'tween_completed')
+	
+
 func _on_Sword_body_entered(body):
-	if not 'CONTROLLER' in body:
+	if dead:
+		return
+	if not ('CONTROLLER' in body):
 		return
 	var faction_leader_of_body = get_faction_leader(body.get_parent())
 	if 'AFFILIATION' in body and body.AFFILIATION != AFFILIATION:
-		print('{me} ({me_power}) hit {other} ({other_power})'.format({'me': name, 'other': body.name, 'me_power': POWER, 'other_power': body.POWER}))
+		#print('{me} ({me_power}) hit {other} ({other_power})'.format({'me': name, 'other': body.name, 'me_power': POWER, 'other_power': body.POWER}))
+		move_and_slide((position - body.position).normalized() * 300)
 		if randi() % body.POWER == 0:
 			if faction_leader_of_body == body:
-				if not sacrifice_leader: 
-					join_with(body.get_parent())
-					say(Message.JOIN_WITH_ENEMY)
+				if CONTROLLER == 'P1':
+					hint()
+					slay_vs_save = body.duplicate()
+					slay_vs_save_faction = body.get_parent()
+					animate_death(body, true)
 				else:
-					say(Message.CHANT)
-					for unit in get_parent().get_children():
-						unit.chant_heard = true
+					if not sacrifice_leader:
+						print('{me} killed {other} (save)'.format({'me': name, 'other': body.name})) 
+						join_with(body.get_parent())
+						say(Message.JOIN_WITH_ENEMY)
+					else:
+						print('{me} killed {other} (slay)'.format({'me': name, 'other': body.name})) 
+						say(Message.CHANT)
+						for unit in get_parent().get_children():
+							unit.chant_heard = true
+					animate_death(body, false)
 			else:
+				print('{me} killed {other}'.format({'me': name, 'other': body.name})) 
 				say(Message.KILLED_ENEMY)
+				animate_death(body, false)
+			body.dead = true
 			body.queue_free()
 	elif body.get_parent() != get_parent():
 		if faction_leader_of_body == body and get_faction_leader(get_parent()) == get_node('.'):

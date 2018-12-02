@@ -13,7 +13,9 @@ _sections_unfolded = [ "Collision" ]
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU2" parent="." index="1" instance=ExtResource( 1 )]
 
@@ -24,7 +26,9 @@ _sections_unfolded = [ "Collision", "collision" ]
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU3" parent="." index="2" instance=ExtResource( 1 )]
 
@@ -32,7 +36,9 @@ position = Vector2( 348.872, 346.714 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU4" parent="." index="3" instance=ExtResource( 1 )]
 
@@ -40,7 +46,9 @@ position = Vector2( 310.313, 379.243 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU5" parent="." index="4" instance=ExtResource( 1 )]
 
@@ -48,7 +56,9 @@ position = Vector2( 411.816, 434.971 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU6" parent="." index="5" instance=ExtResource( 1 )]
 
@@ -56,7 +66,9 @@ position = Vector2( 391.914, 381.233 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU7" parent="." index="6" instance=ExtResource( 1 )]
 
@@ -64,7 +76,9 @@ position = Vector2( 367.367, 296.979 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU8" parent="." index="7" instance=ExtResource( 1 )]
 
@@ -72,7 +86,9 @@ position = Vector2( 411.816, 333.467 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU9" parent="." index="8" instance=ExtResource( 1 )]
 
@@ -80,7 +96,9 @@ position = Vector2( 417.787, 281.057 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU10" parent="." index="9" instance=ExtResource( 1 )]
 
@@ -88,7 +106,9 @@ position = Vector2( 427.075, 482.737 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 [node name="CPU11" parent="." index="10" instance=ExtResource( 1 )]
 
@@ -96,6 +116,8 @@ position = Vector2( 366.704, 473.449 )
 AFFILIATION = "CPU"
 POWER = 5
 sacrifice_leader = false
-SPEED = null
+dead = false
+is_afraid = false
+vision_distance = 200
 
 
