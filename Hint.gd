@@ -4,7 +4,7 @@ export (Vector2) var final_scale = Vector2(1.4, 1.4)
 export (float) var float_distance = 20
 export (float) var scale_duration = 0.5
 export (float) var position_duration = 3
-export (float) var modulate_duration = 1
+export (float) var modulate_duration = 0.5
 
 func _ready():
 	$Tween.interpolate_property(self, 'scale', scale, final_scale, scale_duration, Tween.TRANS_BACK, Tween.EASE_IN_OUT)

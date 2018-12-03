@@ -1,5 +1,7 @@
 extends KinematicBody2D
 
+signal game_over
+
 export (String) var CONTROLLER = 'CPU'
 export (String) var AFFILIATION = 'P1'
 export (int) var POWER = 10
@@ -13,6 +15,7 @@ var slay_vs_save_dead_body = null
 export (bool) var dead = false
 export (bool) var is_afraid = false
 export (float) var vision_distance = 200
+export (bool) var is_rescue = false
 
 enum Message { SPLIT_FROM_TEAM, JOIN_WITH_TEAM, JOIN_WITH_ENEMY, KILLED_ENEMY, CHANT, CHANT_RESPONSE }
 
@@ -61,8 +64,10 @@ var sword_points_at_enemy = false
 
 
 func _ready():
-	add_to_group("unit")
+	add_to_group('unit')
 	add_to_group(AFFILIATION)
+	if CONTROLLER == 'P1':
+		add_to_group('user')
 	set_colors()
 	set_collision_layer_bit(0, true)
 	set_collision_mask_bit(0, true)
@@ -93,22 +98,24 @@ func get_user_input():
 	if Input.is_action_just_pressed(player_controller[CONTROLLER]['slay']):
 		if slay_vs_save != null:
 			say(Message.CHANT)
-			for unit in get_parent().get_children():
+			for unit in get_tree().get_nodes_in_group('P1'):
 				unit.chant_heard = true
 			slay_vs_save.queue_free()
+			$SuccessSfx3.play()
 	if Input.is_action_just_pressed(player_controller[CONTROLLER]['save']):
 		if slay_vs_save != null:
 			slay_vs_save_faction.add_child(slay_vs_save)
 			join_with(slay_vs_save_faction)
 			say(Message.JOIN_WITH_ENEMY)
 			slay_vs_save_dead_body.queue_free()
+			$SuccessSfx3.play()
 	if velocity.length() != 0:
 		direction = direction.normalized() * 0.9 + velocity.normalized() * 0.1
 	velocity = velocity.normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor * 1.1
 	
 func split_faction(split_type):
 	say(Message.SPLIT_FROM_TEAM)
-	var split_modulo = split_type + 1
+	var split_modulo = split_type + 2
 	var current_faction = get_node('.').get_parent()
 	var faction_units = current_faction.get_children()
 	var sub_faction_primary = Node2D.new()
@@ -154,7 +161,7 @@ func set_colors():
 	else:
 		if $ColorRect.color != null:
 			$Tween.interpolate_property($ColorRect, 'color', 
-				$ColorRect.color, end_color, 0.3, 
+				$ColorRect.color, end_color, 1.0, 
 				Tween.TRANS_LINEAR, Tween.EASE_IN)
 			$Tween.start()
 			yield($Tween, 'tween_completed')
@@ -183,9 +190,7 @@ func get_p1():
 func get_system_input():
 	var enemy = find_nearest_enemy()
 	velocity = Vector2()
-	if is_afraid and enemy == null:
-		is_afraid = false
-	elif is_afraid and enemy != null:
+	if is_afraid and enemy != null:
 		velocity = (position - enemy.position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor / 4
 	else:
 		# identify leader of faction
@@ -194,9 +199,10 @@ func get_system_input():
 			if enemy != null:
 				velocity = (enemy.position - position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor
 			else:
-				pass
-				#var p1 = get_p1()
-				#velocity = (p1.position - position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor
+				if AFFILIATION == 'P1':
+					var p1 = get_p1()
+					if p1 != null:
+						velocity = (p1.position - position).normalized() * affiliation_speed[AFFILIATION] * faction_slowdown_factor / 2
 		else:
 			#print('{n} is following leader {m}'.format({'n': get_node('.').name, 'm': leader.name}))
 			velocity = leader.position - position
@@ -284,6 +290,15 @@ func set_crown():
 		$Crown.show()
 	else:
 		$Crown.hide()
+		
+func set_rescue_asset():
+	if is_rescue:
+		$Armor.show()
+	else:
+		$Armor.hide()
+
+func set_power_label():
+	$PowerLabel.text = '{p}'.format({'p':POWER})
 
 func _physics_process(delta):
 	if CONTROLLER == "CPU":
@@ -295,8 +310,10 @@ func _physics_process(delta):
 	set_colors()
 	set_speed()
 	set_crown()
+	set_rescue_asset()
+	set_power_label()
 	if chant_heard and CONTROLLER == 'CPU' and OS.get_unix_time() - prev_chant_heard > 1:
-		POWER += 1
+		POWER += 5
 		say(Message.CHANT_RESPONSE)
 		chant_heard = false
 		prev_chant_heard = OS.get_unix_time()
@@ -305,6 +322,9 @@ func join_with(faction):
 	for unit in faction.get_children():
 		var unit2 = unit.duplicate()
 		unit2.AFFILIATION = AFFILIATION
+		if unit2.CONTROLLER == 'P1' and AFFILIATION == 'CPU':
+			unit2.CONTROLLER = 'CPU'
+		unit2.is_afraid = false
 		get_parent().add_child(unit2)
 		unit.queue_free()
 
@@ -315,7 +335,7 @@ func hint():
 	
 func say(message_type):
 	var chat = load('res://Chat.tscn').instance()
-	chat.position += Vector2(0, -20)
+	chat.position += Vector2(0, -30)
 	#var text_color = affiliation_color[AFFILIATION].darkened(0.5)
 	var utterance = nlg[message_type][randi() % nlg[message_type].size()]
 	match message_type:
@@ -335,7 +355,7 @@ func say(message_type):
 	chat.set('z', 1)
 	add_child(chat)
 
-func animate_death(body, remember):
+func animate_death(body, remember, is_p1):
 	var mock_body = Node2D.new()
 	if remember:
 		slay_vs_save_dead_body = mock_body
@@ -344,6 +364,7 @@ func animate_death(body, remember):
 	mock_body.add_child(r)
 	mock_body.position = body.position
 	get_node('../../Background').add_child(mock_body)
+	
 	var angle
 	if randi() % 2 == 0:
 		angle = PI/2
@@ -351,10 +372,28 @@ func animate_death(body, remember):
 		angle = -PI/2
 	var original_rotation = mock_body.rotation
 	var goal_rotation = mock_body.rotation + angle
-	print('{orig} -> {goal}'.format({'orig': original_rotation, 'goal': goal_rotation}))
-	$Tween.interpolate_property(mock_body, 'rotation', original_rotation, goal_rotation, 0.1, Tween.TRANS_QUAD, Tween.EASE_OUT)
-	$Tween.start()
-	yield($Tween, 'tween_completed')
+	var duration = 0.4
+	if is_p1:
+		duration *= 2
+		var cam = Camera2D.new()
+		mock_body.add_child(cam)
+		cam.make_current()
+		get_node('../../Music').stop()
+		$Death.play()
+		
+	var tween = Tween.new()
+	add_child(tween)
+	tween.interpolate_property(mock_body, 'rotation', original_rotation, goal_rotation, duration, Tween.TRANS_QUAD, Tween.EASE_OUT)
+	tween.start()
+	yield(tween, 'tween_completed')
+	tween.interpolate_property(r, 'color', r.color, Color(1.0, 1.0, 1.0, 0.0), 2, Tween.TRANS_SINE, Tween.EASE_OUT)
+	tween.interpolate_property(mock_body, 'position', mock_body.position, mock_body.position + Vector2(0, -20), 2, Tween.TRANS_QUAD, Tween.EASE_OUT)
+	tween.start()
+	yield(tween, 'tween_completed')
+	if is_p1:
+		get_tree().reload_current_scene()
+	tween.queue_free()	
+	
 	
 
 func _on_Sword_body_entered(body):
@@ -364,6 +403,7 @@ func _on_Sword_body_entered(body):
 		return
 	var faction_leader_of_body = get_faction_leader(body.get_parent())
 	if 'AFFILIATION' in body and body.AFFILIATION != AFFILIATION:
+		$SwordSfx.get_children()[randi() % $SwordSfx.get_children().size()].play()
 		#print('{me} ({me_power}) hit {other} ({other_power})'.format({'me': name, 'other': body.name, 'me_power': POWER, 'other_power': body.POWER}))
 		move_and_slide((position - body.position).normalized() * 300)
 		if randi() % body.POWER == 0:
@@ -372,23 +412,31 @@ func _on_Sword_body_entered(body):
 					hint()
 					slay_vs_save = body.duplicate()
 					slay_vs_save_faction = body.get_parent()
-					animate_death(body, true)
+					animate_death(body, true, body.CONTROLLER == 'P1')
 				else:
 					if not sacrifice_leader:
 						print('{me} killed {other} (save)'.format({'me': name, 'other': body.name})) 
 						join_with(body.get_parent())
 						say(Message.JOIN_WITH_ENEMY)
+						if body.CONTROLLER != 'P1':
+							$SuccessSfx2.play()
 					else:
+						if body.CONTROLLER != 'P1':
+							$SuccessSfx.play()
 						print('{me} killed {other} (slay)'.format({'me': name, 'other': body.name})) 
 						say(Message.CHANT)
 						for unit in get_parent().get_children():
 							unit.chant_heard = true
-					animate_death(body, false)
+					animate_death(body, false, body.CONTROLLER == 'P1')
 			else:
 				print('{me} killed {other}'.format({'me': name, 'other': body.name})) 
 				say(Message.KILLED_ENEMY)
-				animate_death(body, false)
+				animate_death(body, false, body.CONTROLLER == 'P1')
 			body.dead = true
+			if body.CONTROLLER == 'P1':
+				emit_signal('game_over')
+				# get_tree().reload_current_scene()
+				print('p1 died (in unit)')
 			body.queue_free()
 	elif body.get_parent() != get_parent():
 		if faction_leader_of_body == body and get_faction_leader(get_parent()) == get_node('.'):

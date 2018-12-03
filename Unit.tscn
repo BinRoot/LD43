@@ -1,7 +1,17 @@
-[gd_scene load_steps=5 format=2]
+[gd_scene load_steps=15 format=2]
 
 [ext_resource path="res://Unit.gd" type="Script" id=1]
-[ext_resource path="res://imgs/crown.png" type="Texture" id=2]
+[ext_resource path="res://imgs/armor.png" type="Texture" id=2]
+[ext_resource path="res://imgs/crown.png" type="Texture" id=3]
+[ext_resource path="res://audio/death.wav" type="AudioStream" id=4]
+[ext_resource path="res://audio/sword1.wav" type="AudioStream" id=5]
+[ext_resource path="res://audio/sword2.wav" type="AudioStream" id=6]
+[ext_resource path="res://audio/sword3.wav" type="AudioStream" id=7]
+[ext_resource path="res://audio/sword4.wav" type="AudioStream" id=8]
+[ext_resource path="res://audio/sword5.wav" type="AudioStream" id=9]
+[ext_resource path="res://audio/success.wav" type="AudioStream" id=10]
+[ext_resource path="res://audio/success2.wav" type="AudioStream" id=11]
+[ext_resource path="res://audio/success3.wav" type="AudioStream" id=12]
 
 [sub_resource type="RectangleShape2D" id=1]
 
@@ -14,7 +24,7 @@ custom_solver_bias = 0.0
 radius = 1.00508
 height = 9.33272
 
-[node name="Unit" type="KinematicBody2D" index="0"]
+[node name="Unit" type="KinematicBody2D"]
 
 input_pickable = false
 collision_layer = 1
@@ -30,6 +40,7 @@ sacrifice_leader = false
 dead = false
 is_afraid = false
 vision_distance = 200
+is_rescue = false
 direction = Vector2( 0, 0 )
 
 [node name="Shadow" type="ColorRect" parent="." index="0"]
@@ -74,7 +85,28 @@ _sections_unfolded = [ "Rect" ]
 
 shape = SubResource( 1 )
 
-[node name="Crown" type="TextureRect" parent="." index="3"]
+[node name="Armor" type="TextureRect" parent="." index="3"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_left = -5.0
+margin_top = -4.0
+margin_right = 15.0
+margin_bottom = 26.0
+rect_scale = Vector2( 0.5, 0.3 )
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+mouse_filter = 1
+mouse_default_cursor_shape = 0
+size_flags_horizontal = 1
+size_flags_vertical = 1
+texture = ExtResource( 2 )
+stretch_mode = 0
+_sections_unfolded = [ "Rect" ]
+
+[node name="Crown" type="TextureRect" parent="." index="4"]
 
 anchor_left = 0.0
 anchor_top = 0.0
@@ -91,10 +123,11 @@ mouse_filter = 1
 mouse_default_cursor_shape = 0
 size_flags_horizontal = 1
 size_flags_vertical = 1
-texture = ExtResource( 2 )
+texture = ExtResource( 3 )
+stretch_mode = 0
 _sections_unfolded = [ "Rect" ]
 
-[node name="Sword" type="Area2D" parent="." index="4"]
+[node name="Sword" type="Area2D" parent="." index="5"]
 
 position = Vector2( 0.104671, 0.104675 )
 input_pickable = true
@@ -131,7 +164,7 @@ size_flags_horizontal = 1
 size_flags_vertical = 1
 color = Color( 1, 1, 1, 1 )
 
-[node name="Tween" type="Tween" parent="." index="5"]
+[node name="Tween" type="Tween" parent="." index="6"]
 
 repeat = false
 playback_process_mode = 1
@@ -139,6 +172,128 @@ playback_speed = 1.0
 playback/active = false
 playback/repeat = false
 playback/speed = 1.0
+
+[node name="Death" type="AudioStreamPlayer2D" parent="." index="7"]
+
+stream = ExtResource( 4 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SwordSfx" type="Node" parent="." index="8"]
+
+[node name="SwordSfx1" type="AudioStreamPlayer2D" parent="SwordSfx" index="0"]
+
+stream = ExtResource( 5 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SwordSfx2" type="AudioStreamPlayer2D" parent="SwordSfx" index="1"]
+
+stream = ExtResource( 6 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SwordSfx3" type="AudioStreamPlayer2D" parent="SwordSfx" index="2"]
+
+stream = ExtResource( 7 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SwordSfx4" type="AudioStreamPlayer2D" parent="SwordSfx" index="3"]
+
+stream = ExtResource( 8 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SwordSfx5" type="AudioStreamPlayer2D" parent="SwordSfx" index="4"]
+
+stream = ExtResource( 9 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SuccessSfx" type="AudioStreamPlayer2D" parent="." index="9"]
+
+stream = ExtResource( 10 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SuccessSfx2" type="AudioStreamPlayer2D" parent="." index="10"]
+
+stream = ExtResource( 11 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="SuccessSfx3" type="AudioStreamPlayer2D" parent="." index="11"]
+
+stream = ExtResource( 12 )
+volume_db = 0.0
+pitch_scale = 1.0
+autoplay = false
+max_distance = 2000.0
+attenuation = 1.0
+bus = "Master"
+area_mask = 1
+
+[node name="PowerLabel" type="Label" parent="." index="12"]
+
+anchor_left = 0.0
+anchor_top = 0.0
+anchor_right = 0.0
+anchor_bottom = 0.0
+margin_top = -14.0
+margin_right = 40.0
+rect_pivot_offset = Vector2( 0, 0 )
+rect_clip_content = false
+mouse_filter = 2
+mouse_default_cursor_shape = 0
+size_flags_horizontal = 1
+size_flags_vertical = 4
+text = "8"
+align = 1
+valign = 1
+percent_visible = 1.0
+lines_skipped = 0
+max_lines_visible = -1
 
 [connection signal="body_entered" from="Sword" to="." method="_on_Sword_body_entered"]
 

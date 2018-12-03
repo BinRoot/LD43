@@ -42,7 +42,7 @@ func pop():
 		position + Vector2(0, -float_distance), duration, position_tween, position_ease)
 	
 	$Tween.interpolate_property(self, 'modulate', modulate, 
-		transparent, duration, 
+		transparent, duration/2.0, 
 		Tween.TRANS_LINEAR, Tween.EASE_IN)
 	$Tween.start()
 	yield($Tween, 'tween_completed')

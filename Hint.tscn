@@ -21,7 +21,7 @@ final_scale = Vector2( 1.4, 1.4 )
 float_distance = 20
 scale_duration = 0.5
 position_duration = 3
-modulate_duration = 1
+modulate_duration = 0.5
 
 [node name="Label" type="Label" parent="." index="0"]
 
